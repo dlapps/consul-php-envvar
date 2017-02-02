@@ -8,7 +8,7 @@
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/5335a8c3-5f98-4ba4-87c4-542bc910dca4/mini.png)](https://insight.sensiolabs.com/projects/5335a8c3-5f98-4ba4-87c4-542bc910dca4)
 [![Total Downloads][ico-downloads]][link-downloads]
 
-The library enables developers to retrieve missing environment variables from a Consul KV store and make them available in a running PHP process. 
+The library enables developers to retrieve missing environment variables from a Consul KV store and make them available in a running PHP process, and also in a Symfony 3.2+ container. 
 
 The package supports PSR-4 autoloading, is PSR-2 compliant and has been well tested through automated tests. The library is also actively used within the Dreamlabs ecosystem.
 
@@ -40,7 +40,7 @@ $manager = (new ConsulEnvManagerBuilder())
     ->build();
 ```
 
-Once a `ConsulEnvManager` instance has been obtained, you simply need to call its only public method, `ConsulEnvManager::getEnvVarsFromConsul($mappings)` and provide an array of environment variable mappings to Consul KV paths. You can follow an example below:
+Once a `ConsulEnvManager` instance has been obtained, the `ConsulEnvManager::getEnvVarsFromConsul($mappings)` method can be used to provide an array of environment variable mappings to Consul KV paths. An example can be seen below:
 
 ``` php
 $manager = (new ConsulEnvManagerBuilder())->build();
@@ -56,9 +56,37 @@ $manager->getEnvVarsFromConsul([
 
 After running the snippet above, the currently running PHP process will have access to the `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_DB`, `MYSQL_USER` and `MYSQL_PASS` environment variables.
 
-## Use cases
+In order to also register the environment variables within a Symfony 3.2+ container as default values, the `ConsulEnvManager::exposeEnvironmentIntoContainer($container, $mappings)` method can be used. 
 
-The library can be valuable when running as part of a `parameters.php` file in a Symfony 3 project. It can be used in order to ensure, both in development and in production, that configuration data is stored in a centralised system. 
+An example of `parameters.yml` and `parameters.php` can be found below:
+
+``` php
+declare(strict_types = 1);
+
+$manager = (new \DL\ConsulPhpEnvVar\Builder\ConsulEnvManagerBuilder())->build();
+
+$mappings = [
+    'MYSQL_HOST'          => 'dreamlabs/mysql/host',
+    'MYSQL_PORT'          => 'dreamlabs/mysql/port',
+    'MYSQL_DB'            => 'dreamlabs/mysql/db',
+    'MYSQL_USER'          => 'dreamlabs/mysql/user',
+    'MYSQL_PASS'          => 'dreamlabs/mysql/pass',
+];
+
+$manager->getEnvVarsFromConsul($mappings);
+$manager->exposeEnvironmentIntoContainer($container, $mappings);
+```
+
+``` yaml
+parameters:
+    database_host: '%env(MYSQL_HOST)%'
+    database_port: '%env(MYSQL_PORT)%'
+    database_name: '%env(MYSQL_DB)%'
+    database_user: '%env(MYSQL_USER)%'
+    database_password: '%env(MYSQL_PASS)%'
+    auth0_client_id: '%env(AUTH0_CLIENT_ID)%'
+    auth0_client_secret: '%env(AUTH0_CLIENT_SECRET)%'
+``` 
 
 ## Testing
 
