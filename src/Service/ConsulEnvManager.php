@@ -80,7 +80,7 @@ class ConsulEnvManager
      */
     private function getKeyValueFromConsul(string $kvPath): string
     {
-        return $this->kv->get($kvPath)->getBody();
+        return $this->kv->get($kvPath, [['raw' => true]])->getBody();
     }
 
     /**
