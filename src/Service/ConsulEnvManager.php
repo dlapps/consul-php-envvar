@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace DL\ConsulPhpEnvVar\Service;
 
 use SensioLabs\Consul\Services\KV;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Manages environment variables through Consul.
@@ -42,15 +43,32 @@ class ConsulEnvManager
      */
     public function getEnvVarsFromConsul(array $mappings)
     {
-        foreach ($mappings as $environmentKey => $kvPath) {
+        foreach ($mappings as $environmentKey => $consulPath) {
             $keyExists = $this->keyIsDefined($environmentKey);
             if ($keyExists && !$this->overwriteEvenIfDefined) {
                 continue;
             }
 
-            $consulValue = $this->getKeyValueFromConsul($kvPath);
+            $consulValue = $this->getKeyValueFromConsul($consulPath);
             $this->saveKeyValueInEnvironmentVars($environmentKey, $consulValue);
         }
+    }
+
+    /**
+     * Expose a set of mappings into the container builder.
+     *
+     * @param ContainerBuilder $container
+     * @param array            $mappings
+     *
+     * @return ContainerBuilder
+     */
+    public function exposeEnvironmentIntoContainer(ContainerBuilder $container, array $mappings): ContainerBuilder
+    {
+        foreach ($mappings as $environmentKey => $consulPath) {
+            $container->setParameter("env({$environmentKey})", getenv($environmentKey));
+        }
+
+        return $container;
     }
 
     /**

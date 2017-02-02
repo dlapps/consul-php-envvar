@@ -7,6 +7,7 @@ use DL\ConsulPhpEnvVar\Service\ConsulEnvManager;
 use PHPUnit\Framework\TestCase;
 use SensioLabs\Consul\ConsulResponse;
 use SensioLabs\Consul\Services\KV;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Test the behaviour of the Consul environment manager.
@@ -33,7 +34,7 @@ class ConsulEnvManagerTest extends TestCase
 
     public function testGivenThatAnEnvironmentVariableIsNotDefinedThenItsValueWillBeRetrievedFromConsul()
     {
-        $testKey = 'TEST_ENV_1';
+        $testKey  = 'TEST_ENV_1';
         $response = new ConsulResponse([], 'test_value');
         $this->kv->expects($this->once())
             ->method('get')
@@ -68,7 +69,7 @@ class ConsulEnvManagerTest extends TestCase
 
     public function testGivenThatAnEnvironmentVariableIsDefinedThenItsValueWillStillBeRetrievedFromConsulIfTheOverwriteOptionIsDefined()
     {
-        $testKey = 'TEST_ENV_3';
+        $testKey  = 'TEST_ENV_3';
         $response = new ConsulResponse([], 'test_value_3');
         $this->kv->expects($this->once())
             ->method('get')
@@ -84,5 +85,23 @@ class ConsulEnvManagerTest extends TestCase
         ]);
 
         $this->assertEquals('test_value_3', getenv($testKey));
+    }
+
+    public function testGivenThatASetOfMappingsAreProvidedIntoTheContainerThenTheyWillBeSetAsContainerParameters()
+    {
+        $container = $this->getMockBuilder(ContainerBuilder::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $mappings = [
+            'env_key_1' => 'consul/path/1',
+            'env_key_2' => 'consul/path/2',
+            'env_key_3' => 'consul/3',
+        ];
+
+        $container->expects($this->exactly(count($mappings)))->method('setParameter');
+
+        $manager = new ConsulEnvManager($this->kv, false);
+        $manager->exposeEnvironmentIntoContainer($container, $mappings);
     }
 }
