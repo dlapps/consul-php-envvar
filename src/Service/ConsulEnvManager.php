@@ -40,7 +40,7 @@ class ConsulEnvManager
      *
      * @param array $mappings
      */
-    public function getEnvVarsFromConsul(array $mappings): void
+    public function getEnvVarsFromConsul(array $mappings)
     {
         foreach ($mappings as $envKey => $kvPath) {
             $keyExists = (false === getenv($envKey)) ? false : true;
