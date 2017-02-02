@@ -1,6 +1,6 @@
 {
   "name": "dlapps/consul-php-envvar",
-  "description": "Define missing environment variables from Consul KV",
+  "description": "Define missing environment variables from Consul KV and expose them in Symfony 3.2+ containers",
   "homepage": "https://github.com/dlapps/consul-php-envvar",
   "type": "library",
   "keywords": [
