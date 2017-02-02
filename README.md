@@ -58,7 +58,7 @@ After running the snippet above, the currently running PHP process will have acc
 
 In order to also register the environment variables within a Symfony 3.2+ container as default values, the `ConsulEnvManager::exposeEnvironmentIntoContainer($container, $mappings)` method can be used. 
 
-An example of `parameters.yml` and `parameters.php` can be found below:
+An example of `parameters.php` and `parameters.yml` can be found below:
 
 ``` php
 declare(strict_types = 1);
@@ -84,8 +84,6 @@ parameters:
     database_name: '%env(MYSQL_DB)%'
     database_user: '%env(MYSQL_USER)%'
     database_password: '%env(MYSQL_PASS)%'
-    auth0_client_id: '%env(AUTH0_CLIENT_ID)%'
-    auth0_client_secret: '%env(AUTH0_CLIENT_SECRET)%'
 ``` 
 
 ## Testing
