@@ -7,6 +7,7 @@ use DL\ConsulPhpEnvVar\Service\ConsulEnvManager;
 use PHPUnit\Framework\TestCase;
 use SensioLabs\Consul\ConsulResponse;
 use SensioLabs\Consul\Services\KV;
+use SensioLabs\Consul\Services\KVInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -27,8 +28,7 @@ class ConsulEnvManagerTest extends TestCase
      */
     protected function setUp()
     {
-        $this->kv = $this->getMockBuilder(KV::class)
-            ->disableOriginalConstructor()
+        $this->kv = $this->getMockBuilder(KVInterface::class)
             ->getMock();
     }
 
