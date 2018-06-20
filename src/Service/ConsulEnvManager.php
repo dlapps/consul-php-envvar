@@ -65,7 +65,7 @@ class ConsulEnvManager
     public function exposeEnvironmentIntoContainer(ContainerBuilder $container, array $mappings): ContainerBuilder
     {
         foreach ($mappings as $environmentKey => $consulPath) {
-            $container->setParameter("env({$environmentKey})", $_ENV[$environmentKey]);
+            $container->setParameter("env({$environmentKey})", $_ENV[$environmentKey] ?? null);
         }
 
         return $container;
@@ -80,13 +80,7 @@ class ConsulEnvManager
      */
     private function keyIsDefined(string $environmentKey): bool
     {
-        $keyValue = $_ENV[$environmentKey];
-
-        if (false === $keyValue) {
-            return false;
-        }
-
-        return true;
+        return isset($_ENV[$environmentKey]);
     }
 
     /**
@@ -111,7 +105,7 @@ class ConsulEnvManager
     {
         $notHttpName = 0 !== strpos($envKey, 'HTTP_');
 
-        putenv("{$envKey}={$kvValue}");
+        putenv("$envKey=$kvValue");
         $_ENV[$envKey] = $kvValue;
         if ($notHttpName) {
             $_SERVER[$envKey] = $kvValue;

@@ -58,6 +58,7 @@ class ConsulEnvManagerTest extends TestCase
             ->method('get');
 
         putenv("{$testKey}=already-defined");
+        $_ENV[$testKey] = 'already-defined';
 
         $manager = new ConsulEnvManager($this->kv);
         $manager->getEnvVarsFromConsul([
@@ -78,6 +79,7 @@ class ConsulEnvManagerTest extends TestCase
 
         $this->assertFalse(getenv($testKey));
         putenv("{$testKey}=already-defined");
+        $_ENV[$testKey] = 'already-defined';
 
         $manager = new ConsulEnvManager($this->kv, true);
         $manager->getEnvVarsFromConsul([
