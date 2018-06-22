@@ -6,7 +6,7 @@ namespace DL\ConsulPhpEnvVar\Tests\Service;
 use DL\ConsulPhpEnvVar\Service\ConsulEnvManager;
 use PHPUnit\Framework\TestCase;
 use SensioLabs\Consul\ConsulResponse;
-use SensioLabs\Consul\Services\KV;
+use SensioLabs\Consul\Exception\ClientException;
 use SensioLabs\Consul\Services\KVInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -105,5 +105,36 @@ class ConsulEnvManagerTest extends TestCase
 
         $manager = new ConsulEnvManager($this->kv, false);
         $manager->exposeEnvironmentIntoContainer($container, $mappings);
+    }
+
+    public function testItUsesDefaultValueIfKeyNotAvailableInConsul()
+    {
+        $testKey  = 'TEST_ENV_4';
+
+        $this->kv->expects($this->once())
+            ->method('get')
+            ->will($this->throwException(new ClientException('', 404)));
+
+        $manager = new ConsulEnvManager($this->kv, false);
+        $manager->getEnvVarsFromConsul([$testKey => 'test/env4'], [$testKey => 'foo']);
+
+        $this->assertEquals('foo', getenv($testKey));
+    }
+
+    /**
+     * @expectedException \DL\ConsulPhpEnvVar\Exception\NullValueException
+     */
+    public function testItThrowExceptionIfKeyNotAvailableInConsulAndNotInDefaultValues()
+    {
+        $testKey  = 'TEST_ENV_5';
+
+        $this->kv->expects($this->once())
+            ->method('get')
+            ->will($this->throwException(new ClientException('', 404)));
+
+        $manager = new ConsulEnvManager($this->kv, false);
+        $manager->getEnvVarsFromConsul([$testKey => 'test/env5']);
+
+        $this->assertEquals('foo', getenv($testKey));
     }
 }
