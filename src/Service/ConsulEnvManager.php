@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace DL\ConsulPhpEnvVar\Service;
 
-use SensioLabs\Consul\Services\KV;
+use SensioLabs\Consul\Services\KVInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class ConsulEnvManager
 {
     /**
-     * @var KV
+     * @var KVInterface
      */
     protected $kv;
 
@@ -27,10 +27,10 @@ class ConsulEnvManager
     /**
      * ConsulEnvManager constructor.
      *
-     * @param KV   $kv
+     * @param KVInterface   $kv
      * @param bool $overwriteEvenIfDefined
      */
-    public function __construct(KV $kv, bool $overwriteEvenIfDefined = false)
+    public function __construct(KVInterface $kv, bool $overwriteEvenIfDefined = false)
     {
         $this->kv                     = $kv;
         $this->overwriteEvenIfDefined = $overwriteEvenIfDefined;
