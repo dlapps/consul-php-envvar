@@ -3,6 +3,8 @@ declare(strict_types = 1);
 
 namespace DL\ConsulPhpEnvVar\Service;
 
+use DL\ConsulPhpEnvVar\Exception\NullValueException;
+use SensioLabs\Consul\Exception\ClientException;
 use SensioLabs\Consul\Services\KVInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -40,8 +42,11 @@ class ConsulEnvManager
      * Add missing environment variables from Consul.
      *
      * @param array $mappings
+     * @param array $defaults
+     *
+     * @throws NullValueException
      */
-    public function getEnvVarsFromConsul(array $mappings)
+    public function getEnvVarsFromConsul(array $mappings, array $defaults = [])
     {
         foreach ($mappings as $environmentKey => $consulPath) {
             $keyExists = $this->keyIsDefined($environmentKey);
@@ -49,7 +54,18 @@ class ConsulEnvManager
                 continue;
             }
 
-            $consulValue = $this->getKeyValueFromConsul($consulPath);
+            try {
+                $consulValue = $this->getKeyValueFromConsul($consulPath);
+            } catch(ClientException $e) {
+                if ($e->getCode() !== 404 || !isset($defaults[$environmentKey])) {
+                    throw new NullValueException(
+                        sprintf('Impossible to find value for key %s in consul or as default value.', $environmentKey),
+                        0,
+                        $e
+                    );
+                }
+                $consulValue = $defaults[$environmentKey];
+            }
             $this->saveKeyValueInEnvironmentVars($environmentKey, $consulValue);
         }
     }
@@ -65,7 +81,7 @@ class ConsulEnvManager
     public function exposeEnvironmentIntoContainer(ContainerBuilder $container, array $mappings): ContainerBuilder
     {
         foreach ($mappings as $environmentKey => $consulPath) {
-            $container->setParameter("env({$environmentKey})", getenv($environmentKey));
+            $container->setParameter("env({$environmentKey})", $_ENV[$environmentKey] ?? null);
         }
 
         return $container;
@@ -80,13 +96,7 @@ class ConsulEnvManager
      */
     private function keyIsDefined(string $environmentKey): bool
     {
-        $keyValue = getenv($environmentKey);
-
-        if (false === $keyValue) {
-            return false;
-        }
-
-        return true;
+        return isset($_ENV[$environmentKey]);
     }
 
     /**
@@ -109,6 +119,12 @@ class ConsulEnvManager
      */
     private function saveKeyValueInEnvironmentVars($envKey, $kvValue)
     {
-        putenv("{$envKey}={$kvValue}");
+        $notHttpName = 0 !== strpos($envKey, 'HTTP_');
+
+        putenv("$envKey=$kvValue");
+        $_ENV[$envKey] = $kvValue;
+        if ($notHttpName) {
+            $_SERVER[$envKey] = $kvValue;
+        }
     }
 }
